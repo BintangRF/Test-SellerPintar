@@ -1,0 +1,44 @@
+"use client";
+
+import { createContext, useContext, useEffect, useState } from "react";
+
+type AuthContextProps = {
+  isLoggedIn: boolean;
+  logout: () => void;
+  isInitialized: boolean;
+  role: string;
+};
+
+const AuthContext = createContext<AuthContextProps | undefined>(undefined);
+
+export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
+  const [isInitialized, setIsInitialized] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [role, setRole] = useState("");
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    const role = localStorage.getItem("role");
+
+    if (token) {
+      setIsLoggedIn(true);
+      setRole(role || "");
+    }
+    setIsInitialized(true);
+  }, []);
+
+  const logout = () => {
+    setIsLoggedIn(false);
+    localStorage.removeItem("token");
+  };
+
+  return (
+    <AuthContext.Provider value={{ isLoggedIn, logout, isInitialized, role }}>
+      {children}
+    </AuthContext.Provider>
+  );
+};
+
+export const useAuth = () => {
+  return useContext(AuthContext);
+};
