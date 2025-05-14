@@ -4,6 +4,7 @@ import { useApi } from "@/hooks/useApi";
 import Image from "next/image";
 import Link from "next/link";
 import React, { useEffect, useState } from "react";
+import Loader from "../ui/Loader";
 
 type ArticlesProps = {
   id: string;
@@ -18,7 +19,7 @@ type ArticlesProps = {
 };
 
 export default function ListArticles() {
-  const { getData } = useApi();
+  const { getData, loading } = useApi();
   const [articles, setArticles] = useState<ArticlesProps[]>([]);
 
   useEffect(() => {
@@ -28,7 +29,11 @@ export default function ListArticles() {
     };
 
     fetchArticles();
-  }, []);
+  }, [getData]);
+
+  if (loading) {
+    return <Loader />;
+  }
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-6">

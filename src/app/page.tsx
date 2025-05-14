@@ -1,7 +1,7 @@
 "use client";
 
+import Loader from "@/components/ui/Loader";
 import { useAuth } from "@/context/AuthContext";
-import { LoaderCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
@@ -22,7 +22,7 @@ export default function Home() {
   if (!auth?.isInitialized) {
     return (
       <div className="flex justify-center items-center h-screen">
-        <LoaderCircle className="h-8 w-8 animate-spin text-custom-blue" />
+        <Loader />
       </div>
     );
   }

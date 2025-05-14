@@ -23,7 +23,7 @@ export default function Navbar() {
     };
 
     fetchUsers();
-  }, []);
+  }, [getData]);
 
   const firstLetter = users?.username.charAt(0).toUpperCase();
 

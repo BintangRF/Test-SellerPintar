@@ -99,7 +99,7 @@ export default function Login() {
         </FormWrapper>
 
         <p className="text-custom-black font-extralight text-center mt-8">
-          Don't have account?{" "}
+          Don&apos;t have account?{" "}
           <Link href={"/register"} className="text-custom-blue underline">
             Register
           </Link>

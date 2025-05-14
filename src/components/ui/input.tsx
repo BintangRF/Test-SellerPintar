@@ -23,7 +23,6 @@ export { Input };
 
 export function PasswordInput({
   className,
-  type,
   ...props
 }: React.ComponentProps<"input">) {
   const [show, setShow] = React.useState(false);

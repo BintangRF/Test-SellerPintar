@@ -37,7 +37,7 @@ export default function HeroSection() {
     };
 
     fetchCategories();
-  }, []);
+  }, [getData]);
 
   // Update query params in URL
   const updateQueryParams = (paramsObj: Record<string, string | undefined>) => {
