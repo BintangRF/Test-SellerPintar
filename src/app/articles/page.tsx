@@ -1,15 +1,15 @@
 import React, { Suspense } from "react";
-import ArticlesWrapper from "@/components/articles/ArticlesWrapper";
+import LayoutWrapper from "@/components/LayoutWrapper";
 import HeroSection from "@/components/articles/HeroSection";
 import ListArticles from "@/components/articles/ListArticles";
 
 export default function Articles() {
   return (
-    <ArticlesWrapper>
+    <LayoutWrapper>
       <Suspense fallback={<div>Loading...</div>}>
         <HeroSection />
         <ListArticles />
       </Suspense>
-    </ArticlesWrapper>
+    </LayoutWrapper>
   );
 }

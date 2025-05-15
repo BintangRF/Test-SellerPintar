@@ -1,17 +1,24 @@
 "use client";
 
 import { useApi } from "@/hooks/useApi";
-import Image from "next/image";
-import Link from "next/link";
 import React, { useEffect, useState } from "react";
-import Loader from "../ui/Loader";
+import Loader from "../Loader";
+import ArticleCard from "./ArticleCard";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationNext,
+  PaginationPrevious,
+} from "../ui/pagination";
+import { useRouter, useSearchParams } from "next/navigation";
 
 type ArticlesProps = {
   id: string;
   title: string;
   content: string;
   imageUrl: string;
-  createdAt?: string; // Tambahkan jika kamu punya tanggal artikel
+  createdAt?: string;
   category: {
     id: string;
     name: string;
@@ -20,67 +27,106 @@ type ArticlesProps = {
 
 export default function ListArticles() {
   const { getData, loading } = useApi();
+  const params = useSearchParams();
+  const router = useRouter();
+
+  const title = params.get("title");
+  const category = params.get("category");
+  const pageParam = parseInt(params.get("page") || "1", 10);
+
   const [articles, setArticles] = useState<ArticlesProps[]>([]);
+  const [page, setPage] = useState(pageParam);
+  const [totalPages, setTotalPages] = useState(1);
+  const [total, setTotal] = useState(0);
+  const [limit, setLimit] = useState(10);
 
   useEffect(() => {
     const fetchArticles = async () => {
-      const result = await getData("/articles", undefined, true);
+      const queryParams = new URLSearchParams({
+        page: page.toString(),
+        title: title || "",
+        category: category || "",
+      });
+
+      const result = await getData(
+        `/articles?${queryParams.toString()}`,
+        undefined,
+        true
+      );
       setArticles(result?.data || []);
+      setTotal(result?.total || 0);
+      setLimit(result?.limit || 10);
+      setTotalPages(Math.ceil((result?.total || 0) / (result?.limit || 10)));
     };
 
     fetchArticles();
-  }, [getData]);
+  }, [getData, page, title, category]);
+
+  useEffect(() => {
+    // Update URL when `page` changes
+    const newParams = new URLSearchParams(params.toString());
+    newParams.set("page", page.toString());
+    router.replace(`?${newParams.toString()}`);
+  }, [page]);
+
+  const start = (page - 1) * limit + 1;
+  const end = Math.min(start + articles.length - 1, total);
 
   if (loading) {
-    return <Loader />;
+    return (
+      <div className="flex items-center justify-center h-[25rem] mt-10">
+        <Loader />
+      </div>
+    );
   }
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-6">
+      {articles.length === 0 && !loading && (
+        <div className="flex items-center justify-center h-[25rem] col-span-full">
+          <p className="text-lg text-custom-black">No articles available</p>
+        </div>
+      )}
+
+      {articles.length > 0 && (
+        <p className="text-sm text-start col-span-full">
+          Showing {start}–{end} of {total} articles
+        </p>
+      )}
+
       {articles.map((article) => (
-        <Link
-          href={`/articles/${article.id}`}
-          key={article.id}
-          className="bg-white rounded-lg shadow-md overflow-hidden transition hover:shadow-lg"
-        >
-          <div className="relative w-full h-56">
-            <Image
-              src={article.imageUrl}
-              alt={article.title}
-              layout="fill"
-              objectFit="cover"
-              className="rounded-t-lg"
-              priority
-            />
-          </div>
-
-          <div className="p-5 flex flex-col justify-between">
-            {article.createdAt && (
-              <p className="text-sm text-custom-black/50 mb-2">
-                {new Date(article.createdAt).toLocaleDateString("en-US", {
-                  year: "numeric",
-                  month: "long",
-                  day: "numeric",
-                })}
-              </p>
-            )}
-
-            <h2 className="text-lg font-semibold text-custom-black mb-2 line-clamp-2 min-h-16">
-              {article.title}
-            </h2>
-
-            <p className="text-sm text-gray-600 mb-4 line-clamp-3 min-h-16">
-              {article.content}
-            </p>
-
-            <div className="flex flex-wrap gap-2 mt-auto">
-              <span className="bg-blue-100 text-custom-blue text-xs font-medium px-3 py-1 rounded-full">
-                {article.category.name}
-              </span>
-            </div>
-          </div>
-        </Link>
+        <ArticleCard key={article.id} {...article} />
       ))}
+
+      {articles.length > 0 && (
+        <div className="col-span-full mt-6">
+          <Pagination>
+            <PaginationContent className="flex justify-center">
+              <PaginationItem>
+                <PaginationPrevious
+                  onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
+                  className={page === 1 ? "pointer-events-none opacity-50" : ""}
+                />
+              </PaginationItem>
+              <PaginationItem>
+                <span className="px-4 py-2 text-sm text-muted-foreground">
+                  Page {page} of {totalPages}
+                </span>
+              </PaginationItem>
+              <PaginationItem>
+                <PaginationNext
+                  onClick={() =>
+                    setPage((prev) => Math.min(prev + 1, totalPages))
+                  }
+                  className={
+                    page === totalPages ? "pointer-events-none opacity-50" : ""
+                  }
+                />
+              </PaginationItem>
+            </PaginationContent>
+          </Pagination>
+        </div>
+      )}
     </div>
   );
 }

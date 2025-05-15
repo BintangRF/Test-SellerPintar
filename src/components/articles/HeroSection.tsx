@@ -51,7 +51,7 @@ export default function HeroSection() {
   // Handle category and title changes
   const handleCategoryChange = (value: string) => {
     setCategory(value);
-    updateQueryParams({ category: value === "All" ? undefined : value, title });
+    updateQueryParams({ category: value === "all" ? undefined : value, title });
   };
 
   const handleTitleChange = (value: string) => {
@@ -76,7 +76,7 @@ export default function HeroSection() {
       />
       <div className="absolute inset-0 bg-custom-blue opacity-70"></div>
 
-      <div className="absolute inset-0 flex flex-col items-center justify-center text-white gap-4 z-[100]">
+      <div className="absolute inset-0 flex flex-col items-center justify-center text-white gap-4 z-40">
         <p className="text-sm font-bold">Blog genzet</p>
         <h1 className="text-4xl font-bold max-w-2xl text-center">
           The Journal : Design Resources, Interviews, and Industry News
@@ -90,12 +90,14 @@ export default function HeroSection() {
               <SelectTrigger className="w-[clamp(100%,_1rem,_5rem)] bg-custom-white text-custom-black flex-1">
                 <SelectValue placeholder="Select Category" />
               </SelectTrigger>
-              <SelectContent className="bg-custom-white z-[100]">
-                {categories?.map((category) => (
-                  <SelectItem value={category?.name} key={category?.id}>
-                    {category?.name}
-                  </SelectItem>
-                ))}
+              <SelectContent className="bg-custom-white z-40">
+                {categories
+                  .filter((cat) => cat.id !== "")
+                  .map((category) => (
+                    <SelectItem value={category.id} key={category.id}>
+                      {category.name}
+                    </SelectItem>
+                  ))}
               </SelectContent>
             </Select>
 

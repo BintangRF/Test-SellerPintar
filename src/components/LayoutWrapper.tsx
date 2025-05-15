@@ -1,8 +1,8 @@
 import React from "react";
-import Navbar from "../ui/Navbar";
-import Footer from "../ui/Footer";
+import Navbar from "./Navbar";
+import Footer from "./Footer";
 
-export default function ArticlesWrapper({
+export default function LayoutWrapper({
   children,
 }: {
   children: React.ReactNode;

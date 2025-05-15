@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { AuthProvider } from "@/context/AuthContext";
+import { DialogProvider } from "@/context/DialogContext";
 
 export const metadata: Metadata = {
   title: "Home Test Frontend Web Developer",
@@ -15,7 +16,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="bg-custom-gray">
-        <AuthProvider>{children}</AuthProvider>
+        <DialogProvider>
+          <AuthProvider>{children}</AuthProvider>
+        </DialogProvider>
       </body>
     </html>
   );

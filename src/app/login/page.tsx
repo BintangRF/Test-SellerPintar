@@ -8,7 +8,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { FormWrapper } from "@/components/ui/formWrapper";
+import { FormWrapper } from "@/components/formWrapper";
 import { Input, PasswordInput } from "@/components/ui/input";
 import { useApi } from "@/hooks/useApi";
 import Image from "next/image";

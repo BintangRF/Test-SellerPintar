@@ -1,6 +1,6 @@
 "use client";
 
-import Loader from "@/components/ui/Loader";
+import Loader from "@/components/Loader";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
@@ -16,6 +16,8 @@ export default function Home() {
       router.push("/login");
     } else if (auth.role === "User") {
       router.push("/articles");
+    } else if (auth.role === "Admin") {
+      router.push("/dashboard/admin");
     }
   }, [auth?.isInitialized, auth?.isLoggedIn, auth?.role, router]);
 
@@ -31,7 +33,7 @@ export default function Home() {
     return null;
   }
 
-  if (auth?.role === "User") {
+  if (auth?.role === "User" || auth?.role === "Admin") {
     return null;
   }
 }
