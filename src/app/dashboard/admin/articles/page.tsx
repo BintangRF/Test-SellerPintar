@@ -1,15 +1,16 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import AdminLayout from "@/components/AdminLayout";
 import { DataTable } from "@/components/DataTable";
 import { Button } from "@/components/ui/button";
-import { useApi } from "@/hooks/useApi";
+import { useGet, usePost } from "@/hooks/useApi";
 import { ColumnDef } from "@tanstack/react-table";
 import { PlusIcon } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useDialog } from "@/context/DialogContext";
+import Loader from "@/components/Loader";
 
 export type Article = {
   id: string;
@@ -24,51 +25,44 @@ export type Article = {
 };
 
 export default function AdminArticles() {
-  const { getData, pushData } = useApi();
+  const { post } = usePost();
   const router = useRouter();
   const { showDialog, closeDialog } = useDialog() || {};
 
-  const [articles, setArticles] = useState<Article[]>([]);
   const [globalFilter, setGlobalFilter] = useState("");
-  const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
   const rowLimit = 5;
 
-  const fetchData = async () => {
-    const queryParams = new URLSearchParams({
-      page: page.toString(),
-      limit: rowLimit.toString(),
-      search: globalFilter,
-    });
+  const queryParams = new URLSearchParams({
+    page: page.toString(),
+    limit: rowLimit.toString(),
+    search: globalFilter,
+  });
 
-    const result = await getData(
-      `/articles?${queryParams.toString()}`,
-      undefined,
-      true
-    );
-    setArticles(result?.data || []);
-    setTotal(result?.total || 0);
-  };
+  const {
+    data: articles,
+    loading,
+    refetch,
+  } = useGet(`/articles?${queryParams.toString()}`, { useToken: true });
 
-  useEffect(() => {
-    fetchData();
-  }, [page, globalFilter, getData]);
+  const total: number =
+    typeof articles?.total === "number" ? articles.total : 0;
 
   const handlePageChange = (newPage: number) => {
     setPage(newPage);
   };
 
   const handleDelete = async (id: string) => {
-    const result = await pushData(
-      `/articles/${id}`,
-      "delete",
-      {},
-      undefined,
-      true
-    );
-    if (result) {
+    const response = await post({
+      url: `/articles/${id}`,
+      method: "DELETE",
+      data: {},
+      useToken: true,
+      isFormData: false,
+    });
+    if (response) {
       closeDialog?.();
-      fetchData();
+      refetch();
     }
   };
 
@@ -150,11 +144,20 @@ export default function AdminArticles() {
     },
   ];
 
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-[25rem] mt-9">
+        <Loader />
+      </div>
+    );
+  }
+
   return (
     <AdminLayout>
       <DataTable
         columns={columns}
-        data={articles}
+        data={Array.isArray(articles?.data) ? articles?.data : []}
+        page={page}
         globalFilter={globalFilter}
         onGlobalFilterChange={setGlobalFilter}
         rowLimit={rowLimit}

@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/form";
 import { FormWrapper } from "@/components/formWrapper";
 import { Input, PasswordInput } from "@/components/ui/input";
-import { useApi } from "@/hooks/useApi";
+import { usePost } from "@/hooks/useApi";
 import Image from "next/image";
 import Link from "next/link";
 import React from "react";
@@ -28,10 +28,15 @@ const schema = z.object({
 // user@example.com
 // user123
 export default function Login() {
-  const { pushData } = useApi();
+  const { post } = usePost();
 
   const handleSubmit = async (data: z.infer<typeof schema>) => {
-    const response = await pushData("/auth/login", "post", data);
+    const response = await post({
+      url: "/auth/login",
+      data: data,
+      useToken: false,
+      isFormData: false,
+    });
     if (response?.token) {
       localStorage.setItem("token", response.token);
       localStorage.setItem("role", response.role);

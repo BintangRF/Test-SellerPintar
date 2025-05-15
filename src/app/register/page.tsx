@@ -17,11 +17,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useApi } from "@/hooks/useApi";
+import { usePost } from "@/hooks/useApi";
 import Image from "next/image";
 import Link from "next/link";
 import React from "react";
 import { z } from "zod";
+import { useRouter } from "next/navigation";
 
 const schema = z.object({
   username: z.string().nonempty({
@@ -36,9 +37,19 @@ const schema = z.object({
 });
 
 export default function Register() {
-  const { pushData } = useApi();
+  const { post } = usePost();
+  const router = useRouter();
   const handleSubmit = async (data: z.infer<typeof schema>) => {
-    return await pushData("/auth/register", "post", data);
+    const response = await post({
+      url: "/auth/register",
+      data: data,
+      useToken: false,
+      isFormData: false,
+    });
+
+    if (response) {
+      router.push("/login");
+    }
   };
 
   const roleOptions = [

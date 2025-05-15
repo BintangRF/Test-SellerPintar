@@ -1,12 +1,12 @@
 "use client";
 
-import { useApi } from "@/hooks/useApi";
 import { useParams } from "next/navigation";
-import { useEffect, useState } from "react";
 import Loader from "@/components/Loader";
 import ArticleCard from "@/components/articles/ArticleCard";
 import UserLayout from "@/components/UserLayout";
 import parse from "html-react-parser";
+import { useGet } from "@/hooks/useApi";
+import Image from "next/image";
 
 type ArticleDetail = {
   id: string;
@@ -24,27 +24,18 @@ type ArticleDetail = {
 };
 
 export default function ArticleDetail() {
-  const { getData, loading } = useApi();
   const { id } = useParams();
-  const [article, setArticle] = useState<ArticleDetail | null>(null);
-  const [relatedArticles, setRelatedArticles] = useState<ArticleDetail[]>([]);
 
-  useEffect(() => {
-    const fetchArticle = async () => {
-      const result = await getData(`/articles/${id}`);
-      if (result) {
-        setArticle(result);
+  const { data: article, loading } = useGet<ArticleDetail>(`/articles/${id}`, {
+    useToken: true,
+  });
 
-        // Fetch related articles
-        const related = await getData(
-          `/articles?category=${result.category.id}&excludeId=${result.id}&limit=3`
-        );
-        setRelatedArticles(related?.data || []);
-      }
-    };
-
-    fetchArticle();
-  }, [id, getData]);
+  const { data: relatedArticles } = useGet<{ data: ArticleDetail[] }>(
+    `/articles?${`/articles?category=${article?.category.id}&excludeId=${article?.id}&limit=3`}`,
+    {
+      useToken: true,
+    }
+  );
 
   if (loading || !article) {
     return (
@@ -80,9 +71,11 @@ export default function ArticleDetail() {
 
         {/* Article Image */}
         <div className="mb-8">
-          <img
+          <Image
             src={article.imageUrl || "https://placehold.co/600x400/png"}
             alt={article.title}
+            width={500}
+            height={300}
             className="w-full h-80 object-cover rounded-xl shadow-md"
           />
         </div>
@@ -91,13 +84,13 @@ export default function ArticleDetail() {
         <div className="prose max-w-none mb-12">{parse(article.content)}</div>
 
         {/* Related Articles */}
-        {relatedArticles.length > 0 && (
+        {relatedArticles?.data.length! > 0 && (
           <div className="mt-12">
             <h2 className="text-2xl font-semibold text-custom-black mb-6">
               Related Articles in {article.category.name}
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {relatedArticles.map((item) => (
+              {relatedArticles?.data.map((item: ArticleDetail) => (
                 <ArticleCard key={item.id} {...item} />
               ))}
             </div>

@@ -1,83 +1,74 @@
-import axios, { AxiosError, AxiosRequestConfig } from "axios";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { request } from "./axiosClient";
 
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
+export const useGet = <T = Record<string, unknown>>(
+  url: string,
+  {
+    useToken = false,
+    refetchDeps = [],
+  }: { useToken?: boolean; refetchDeps?: string[] } = {}
+) => {
+  const [data, setData] = useState<T | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-export const useApi = () => {
+  const fetchData = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await request({ url, useToken });
+      setData(res);
+    } catch (err) {
+      setError(
+        (err as Error).message || "Terjadi kesalahan saat mengambil data."
+      );
+    } finally {
+      setLoading(false);
+    }
+  }, [url, useToken]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData, ...refetchDeps]);
+
+  return { data, loading, error, refetch: fetchData };
+};
+
+export const usePost = () => {
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<AxiosError | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
-  const getAuthConfig = useCallback(
-    (
-      config?: AxiosRequestConfig,
-      useToken: boolean = false
-    ): AxiosRequestConfig => {
-      const token = useToken ? localStorage.getItem("token") : null;
+  const post = async ({
+    url,
+    method = "POST",
+    data,
+    useToken = false,
+    isFormData = false,
+  }: {
+    url: string;
+    method?: "POST" | "PUT" | "DELETE";
+    data: object;
+    useToken?: boolean;
+    isFormData?: boolean;
+  }) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await request({
+        method: method,
+        url,
+        data,
+        useToken,
+        isFormData,
+      });
+      return res;
+    } catch (err) {
+      setError(err as string);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
 
-      return {
-        ...config,
-        headers: {
-          ...(config?.headers || {}),
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-      };
-    },
-    []
-  );
-
-  const getData = useCallback(
-    async (
-      endpoint: string,
-      config?: AxiosRequestConfig,
-      useToken: boolean = false
-    ) => {
-      setLoading(true);
-      setError(null);
-
-      try {
-        const response = await axios.get(
-          `${BASE_URL}${endpoint}`,
-          getAuthConfig(config, useToken)
-        );
-        return response.data;
-      } catch (error) {
-        setError(error as AxiosError);
-        return null;
-      } finally {
-        setLoading(false);
-      }
-    },
-    [getAuthConfig]
-  );
-
-  const pushData = useCallback(
-    async (
-      endpoint: string,
-      method: "post" | "put" | "delete",
-      data: object,
-      config?: AxiosRequestConfig,
-      useToken: boolean = false
-    ) => {
-      setLoading(true);
-      setError(null);
-
-      try {
-        const response = await axios({
-          method,
-          url: `${BASE_URL}${endpoint}`,
-          data,
-          ...getAuthConfig(config, useToken),
-        });
-        return response.data;
-      } catch (error) {
-        setError(error as AxiosError);
-        return null;
-      } finally {
-        setLoading(false);
-      }
-    },
-    [getAuthConfig]
-  );
-
-  return { getData, pushData, loading, error };
+  return { post, loading, error };
 };

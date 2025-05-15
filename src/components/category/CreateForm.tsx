@@ -11,13 +11,9 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { FormWrapper } from "@/components/formWrapper";
-import { useEffect, useMemo, useState } from "react";
-import { useApi } from "@/hooks/useApi";
+import { useMemo } from "react";
+import { useGet, usePost } from "@/hooks/useApi";
 import Loader from "../Loader";
-
-type Category = {
-  name: string;
-};
 
 const categorySchema = z.object({
   name: z.string().min(1, "name is required"),
@@ -32,47 +28,42 @@ export default function CreateCategoryForm({
   refetch: () => void;
   onCancel: () => void;
 }) {
-  const { getData, pushData, loading } = useApi();
+  const { post } = usePost();
 
-  const [categoryData, setCategoryData] = useState<Category | null>(null);
+  const { data, loading } = useGet(`/categories/${id}`, {
+    useToken: true,
+  });
+
+  const category = id ? data : null;
+
   const defaultValues = useMemo(() => {
-    if (!categoryData) {
+    if (!category) {
       return {
         name: "",
       };
     }
     return {
-      name: categoryData.name,
+      name: category.name as string,
     };
-  }, [categoryData]);
-
-  useEffect(() => {
-    const fetchData = async () => {
-      if (id) {
-        const categoryResult = await getData(
-          `/categories/${id}`,
-          undefined,
-          true
-        );
-        if (categoryResult) {
-          setCategoryData(categoryResult);
-        }
-      }
-    };
-
-    fetchData();
-  }, [id]);
+  }, [category]);
 
   const handleSubmit = async (data: z.infer<typeof categorySchema>) => {
     const isEdit = Boolean(id);
     const endpoint = isEdit ? `/categories/${id}` : "/categories";
-    const method = isEdit ? "put" : "post";
+    const method = isEdit ? "PUT" : "POST";
 
     const payload = {
       name: data.name,
     };
 
-    const result = await pushData(endpoint, method, payload, undefined, true);
+    const result = await post({
+      url: endpoint,
+      method: method,
+      data: payload,
+      useToken: true,
+      isFormData: false,
+    });
+
     if (result) {
       onCancel();
       refetch();

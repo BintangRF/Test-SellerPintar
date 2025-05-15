@@ -1,44 +1,27 @@
 "use client";
 
-import { useApi } from "@/hooks/useApi";
 import Image from "next/image";
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { CustomPopover } from "./CustomPopover";
 import { LogOut } from "lucide-react";
 import { Button } from "./ui/button";
 import { useDialog } from "@/context/DialogContext";
 import { useAuth } from "@/context/AuthContext";
 
-type User = {
-  id: number;
-  username: string;
-  email: string;
-};
-
 export default function Navbar() {
-  const { getData } = useApi();
   const params = useParams();
   const pathname = usePathname();
   const { showDialog, closeDialog } = useDialog() || {};
   const auth = useAuth();
 
-  const [users, setUsers] = useState<User>();
+  const user = auth?.user;
 
   const isAdmin = pathname.startsWith("/dashboard/admin");
   const isWhiteNavbar = !!params?.id || pathname === "/profile" || isAdmin;
 
-  useEffect(() => {
-    const fetchUsers = async () => {
-      const result = await getData("/auth/profile", undefined, true);
-      if (result) setUsers(result);
-    };
-
-    fetchUsers();
-  }, [getData]);
-
-  const firstLetter = users?.username.charAt(0).toUpperCase();
+  const firstLetter = user?.username.charAt(0).toUpperCase();
 
   const LogoutDialog = ({ onCancel }: { onCancel: () => void }) => {
     const handleLogout = () => {
@@ -123,7 +106,7 @@ export default function Navbar() {
                   {firstLetter}
                 </span>
                 <span className="underline not-md:hidden">
-                  {users?.username}
+                  {user?.username}
                 </span>
               </div>
             }
@@ -169,7 +152,7 @@ export default function Navbar() {
             <span className="bg-blue-300 rounded-full text-xl py-1 px-2.5 text-blue-700">
               {firstLetter}
             </span>
-            <span className="underline not-md:hidden">{users?.username}</span>
+            <span className="underline not-md:hidden">{user?.username}</span>
           </Link>
         )}
       </div>

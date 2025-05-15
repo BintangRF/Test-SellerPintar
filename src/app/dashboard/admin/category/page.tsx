@@ -1,14 +1,15 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import AdminLayout from "@/components/AdminLayout";
-import { useApi } from "@/hooks/useApi";
 import { useDialog } from "@/context/DialogContext";
 import { Button } from "@/components/ui/button";
 import { ColumnDef } from "@tanstack/react-table";
 import { PlusIcon } from "lucide-react";
 import { DataTable } from "@/components/DataTable";
 import CreateCategoryForm from "@/components/category/CreateForm";
+import { useGet, usePost } from "@/hooks/useApi";
+import Loader from "@/components/Loader";
 
 export type Category = {
   id: string;
@@ -17,50 +18,44 @@ export type Category = {
 };
 
 export default function AdminCategory() {
-  const { getData, pushData } = useApi();
+  const { post } = usePost();
   const { showDialog, closeDialog } = useDialog() || {};
 
-  const [categories, setCategories] = useState<Category[]>([]);
   const [globalFilter, setGlobalFilter] = useState("");
-  const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
   const rowLimit = 5;
 
-  const fetchData = async () => {
-    const queryParams = new URLSearchParams({
-      page: page.toString(),
-      limit: rowLimit.toString(),
-      search: globalFilter,
-    });
+  const queryParams = new URLSearchParams({
+    page: page.toString(),
+    limit: rowLimit.toString(),
+    search: globalFilter,
+  });
 
-    const result = await getData(
-      `/categories?${queryParams.toString()}`,
-      undefined,
-      true
-    );
-    setCategories(result?.data || []);
-    setTotal(result?.totalData || 0);
-  };
+  const {
+    data: category,
+    loading,
+    refetch,
+  } = useGet(`/categories?${queryParams.toString()}`, { useToken: true });
 
-  useEffect(() => {
-    fetchData();
-  }, [page, globalFilter, fetchData]);
+  const total: number =
+    typeof category?.totalData === "number" ? category.totalData : 0;
 
   const handlePageChange = (newPage: number) => {
     setPage(newPage);
   };
 
   const handleDelete = async (id: string) => {
-    const result = await pushData(
-      `/categories/${id}`,
-      "delete",
-      {},
-      undefined,
-      true
-    );
+    const result = await post({
+      url: `/categories/${id}`,
+      method: "DELETE",
+      data: {},
+      useToken: true,
+      isFormData: false,
+    });
+
     if (result) {
       closeDialog?.();
-      fetchData();
+      refetch();
     }
   };
 
@@ -128,7 +123,7 @@ export default function AdminCategory() {
               showDialog(
                 <CreateDialog
                   id={row.original.id}
-                  refetch={fetchData}
+                  refetch={refetch}
                   onCancel={() => closeDialog?.()}
                 />,
                 "Edit Category"
@@ -159,11 +154,20 @@ export default function AdminCategory() {
     },
   ];
 
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-[25rem] mt-9">
+        <Loader />
+      </div>
+    );
+  }
+
   return (
     <AdminLayout>
       <DataTable
         columns={columns}
-        data={categories}
+        data={Array.isArray(category?.data) ? category?.data : []}
+        page={page}
         globalFilter={globalFilter}
         onGlobalFilterChange={setGlobalFilter}
         rowLimit={rowLimit}
@@ -175,7 +179,7 @@ export default function AdminCategory() {
               showDialog &&
               showDialog(
                 <CreateDialog
-                  refetch={fetchData}
+                  refetch={refetch}
                   onCancel={() => closeDialog?.()}
                 />,
                 "Create Category"

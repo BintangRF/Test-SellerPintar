@@ -10,7 +10,7 @@ import {
   SelectValue,
 } from "../ui/select";
 import { Input } from "../ui/input";
-import { useApi } from "@/hooks/useApi";
+import { useGet } from "@/hooks/useApi";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 type CategoriesProps = {
@@ -19,25 +19,18 @@ type CategoriesProps = {
 };
 
 export default function HeroSection() {
-  const { getData } = useApi();
+  const { data: categories } = useGet("/categories", { useToken: true });
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
-  const [categories, setCategories] = useState<CategoriesProps[]>([]);
   const [category, setCategory] = useState<string>("");
   const [title, setTitle] = useState<string>("");
 
-  // Fetch categories on mount
-  useEffect(() => {
-    const fetchCategories = async () => {
-      const result = await getData("/categories", undefined, true);
-      const categoriesData = result?.data || [];
-      setCategories([{ id: "all", name: "All" }, ...categoriesData]);
-    };
-
-    fetchCategories();
-  }, [getData]);
+  const categoriesData = [
+    { id: "all", name: "All" },
+    ...(Array.isArray(categories?.data) ? categories.data : []),
+  ];
 
   // Update query params in URL
   const updateQueryParams = (paramsObj: Record<string, string | undefined>) => {
@@ -91,13 +84,14 @@ export default function HeroSection() {
                 <SelectValue placeholder="Select Category" />
               </SelectTrigger>
               <SelectContent className="bg-custom-white z-40">
-                {categories
-                  .filter((cat) => cat.id !== "")
-                  .map((category) => (
-                    <SelectItem value={category.id} key={category.id}>
-                      {category.name}
-                    </SelectItem>
-                  ))}
+                {categoriesData &&
+                  categoriesData
+                    .filter((cat: { id: string }) => cat.id !== "")
+                    .map((category: CategoriesProps) => (
+                      <SelectItem value={category.id} key={category.id}>
+                        {category.name}
+                      </SelectItem>
+                    ))}
               </SelectContent>
             </Select>
 

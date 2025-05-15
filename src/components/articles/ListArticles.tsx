@@ -1,6 +1,6 @@
 "use client";
 
-import { useApi } from "@/hooks/useApi";
+import { useGet } from "@/hooks/useApi";
 import React, { useEffect, useState } from "react";
 import Loader from "../Loader";
 import ArticleCard from "./ArticleCard";
@@ -25,8 +25,12 @@ type ArticlesProps = {
   };
 };
 
+type ApiResponse = {
+  data: ArticlesProps[];
+  total: number;
+};
+
 export default function ListArticles() {
-  const { getData, loading } = useApi();
   const params = useSearchParams();
   const router = useRouter();
 
@@ -34,41 +38,37 @@ export default function ListArticles() {
   const category = params.get("category");
   const pageParam = parseInt(params.get("page") || "1", 10);
 
-  const [articles, setArticles] = useState<ArticlesProps[]>([]);
   const [page, setPage] = useState(pageParam);
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
   const limit = 9;
 
-  useEffect(() => {
-    const fetchArticles = async () => {
-      const queryParams = new URLSearchParams({
-        page: page.toString(),
-        limit: limit.toString(),
-        title: title || "",
-        category: category || "",
-      });
+  const queryParams = new URLSearchParams({
+    page: page.toString(),
+    limit: limit.toString(),
+    title: title || "",
+    category: category || "",
+  });
 
-      const result = await getData(
-        `/articles?${queryParams.toString()}`,
-        undefined,
-        true
-      );
-      setArticles(result?.data || []);
-      setTotal(result?.total || 0);
-      setTotalPages(Math.ceil((result?.total || 0) / limit));
-    };
+  const { data: response, loading } = useGet<ApiResponse>(
+    `/articles?${queryParams.toString()}`,
+    { useToken: true }
+  );
 
-    fetchArticles();
-  }, [getData, page, limit, title, category, params, router]);
+  const articles = response?.data || [];
+  const articlesTotal = response?.total || 0;
 
   useEffect(() => {
-    // Update URL when `page` or `limit` changes
+    setTotal(articlesTotal);
+    setTotalPages(Math.ceil(articlesTotal / limit));
+  }, [articlesTotal, limit]);
+
+  useEffect(() => {
     const newParams = new URLSearchParams(params.toString());
     newParams.set("page", page.toString());
     newParams.set("limit", limit.toString());
     router.replace(`?${newParams.toString()}`);
-  }, [page, limit]);
+  }, [page, limit, params, router]);
 
   const start = (page - 1) * limit + 1;
   const end = Math.min(start + articles.length - 1, total);
@@ -95,7 +95,7 @@ export default function ListArticles() {
         </p>
       )}
 
-      {articles.map((article) => (
+      {articles.map((article: ArticlesProps) => (
         <ArticleCard key={article.id} {...article} />
       ))}
 

@@ -19,14 +19,15 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { FormWrapper } from "@/components/formWrapper";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 import "react-quill-new/dist/quill.snow.css";
-import { useApi } from "@/hooks/useApi";
+import { useGet, usePost } from "@/hooks/useApi";
 import { useParams, useRouter } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import dynamic from "next/dynamic";
 import Loader from "../Loader";
 import { useAuth } from "@/context/AuthContext";
+import Image from "next/image";
 
 const ReactQuill = dynamic(() => import("react-quill-new"), { ssr: false });
 
@@ -38,7 +39,7 @@ const articleSchema = z.object({
   userId: z.string().optional(),
 });
 
-type CategoriesProps = { id: string; name: string };
+type CategoriesProps = { data: { id: string; name: string }[] };
 type Article = {
   id: string;
   title: string;
@@ -48,14 +49,22 @@ type Article = {
 };
 
 export default function CreateArticleForm() {
-  const { getData, pushData, loading } = useApi();
+  const { post } = usePost();
   const auth = useAuth();
   const router = useRouter();
   const { id } = useParams();
   const userId = auth?.user?.id;
 
-  const [categories, setCategories] = useState<CategoriesProps[]>([]);
-  const [articleData, setArticleData] = useState<Article | null>(null);
+  const { data: categories } = useGet<CategoriesProps>("/categories", {
+    useToken: true,
+  });
+
+  const { data, loading } = useGet<Article>(`/articles/${id}`, {
+    useToken: true,
+  });
+
+  const articleData = id ? data : null;
+
   const defaultValues = useMemo(() => {
     if (!articleData) {
       return {
@@ -67,34 +76,16 @@ export default function CreateArticleForm() {
     }
     return {
       title: articleData.title,
-      categoryId: articleData.category.id,
+      categoryId: articleData.category?.id,
       content: articleData.content,
       imageUrl: articleData.imageUrl,
     };
   }, [articleData]);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      // Fetch categories
-      const categoriesResult = await getData("/categories", undefined, true);
-      setCategories(categoriesResult?.data || []);
-
-      // Only fetch article if editing
-      if (id) {
-        const articleResult = await getData(`/articles/${id}`, undefined, true);
-        if (articleResult) {
-          setArticleData(articleResult);
-        }
-      }
-    };
-
-    fetchData();
-  }, [id, getData]);
-
   const handleSubmit = async (data: z.infer<typeof articleSchema>) => {
     const isEdit = Boolean(id);
     const endpoint = isEdit ? `/articles/${id}` : "/articles";
-    const method = isEdit ? "put" : "post";
+    const method = isEdit ? "PUT" : "POST";
 
     const payload = {
       title: data.title,
@@ -104,8 +95,14 @@ export default function CreateArticleForm() {
       userId: userId || undefined,
     };
 
-    const result = await pushData(endpoint, method, payload, undefined, true);
-    if (result) {
+    const response = await post({
+      url: endpoint,
+      method: method,
+      data: payload,
+      useToken: true,
+      isFormData: false,
+    });
+    if (response) {
       router.back();
     }
   };
@@ -170,16 +167,20 @@ export default function CreateArticleForm() {
                     <div className="flex flex-col items-start space-y-2">
                       <label className="border-dashed border border-gray-300 rounded-md w-full h-32 flex items-center justify-center text-sm text-gray-500 cursor-pointer">
                         {field.value && typeof field.value !== "string" ? (
-                          <img
+                          <Image
                             src={URL.createObjectURL(field.value)}
                             alt="Preview"
-                            className="h-full object-contain"
+                            width={200}
+                            height={200}
+                            className="h-full object-contain w-full"
                           />
                         ) : field.value ? (
-                          <img
+                          <Image
                             src={field.value}
                             alt="Preview"
-                            className="h-full object-contain"
+                            width={200}
+                            height={200}
+                            className="h-full object-contain w-full"
                           />
                         ) : (
                           "Click or drag image to upload (1200x630 recommended)"
@@ -229,7 +230,7 @@ export default function CreateArticleForm() {
                       <SelectValue placeholder="Select Category" />
                     </SelectTrigger>
                     <SelectContent className="bg-custom-white z-40">
-                      {categories
+                      {categories?.data
                         .filter((category) => category.id)
                         .map((category) => (
                           <SelectItem value={category.id} key={category.id}>

@@ -5,19 +5,14 @@ import AdminLayout from "@/components/AdminLayout";
 import UserLayout from "@/components/UserLayout";
 import ProfileCard from "@/components/ProfileCard";
 import { useAuth } from "@/context/AuthContext";
-import { useApi } from "@/hooks/useApi";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
-
-type User = {
-  username: string;
-  role: string;
-};
+import Loader from "@/components/Loader";
 
 export default function ProfilePage() {
-  const { getData } = useApi();
   const router = useRouter();
   const auth = useAuth();
+
+  const user = auth?.user;
 
   const BackFunction = () => {
     router.back();
@@ -26,16 +21,13 @@ export default function ProfilePage() {
   const isAdmin = auth?.role === "Admin";
   const isUser = auth?.role === "User";
 
-  const [user, setUser] = useState<User>();
-
-  useEffect(() => {
-    const fetchUser = async () => {
-      const result = await getData("/auth/profile", undefined, true);
-      if (result) setUser(result);
-    };
-
-    fetchUser();
-  }, [getData]);
+  if (!user) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <Loader />
+      </div>
+    );
+  }
 
   return (
     <>

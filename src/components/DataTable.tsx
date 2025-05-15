@@ -28,6 +28,7 @@ import { useState } from "react";
 type DataTableProps<TData, TValue> = {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
+  page?: number;
   globalFilter?: string;
   onGlobalFilterChange?: (value: string) => void;
   actions?: React.ReactNode;
@@ -39,6 +40,7 @@ type DataTableProps<TData, TValue> = {
 export function DataTable<TData, TValue>({
   columns,
   data,
+  page = 1,
   globalFilter,
   onGlobalFilterChange,
   actions,
@@ -50,7 +52,6 @@ export function DataTable<TData, TValue>({
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
 
-  const [page, setPage] = useState(1);
   const totalPages = Math.ceil(total / rowLimit);
 
   const table = useReactTable({
@@ -79,7 +80,6 @@ export function DataTable<TData, TValue>({
 
   const handlePageChange = (newPage: number) => {
     const adjustedPage = Math.max(1, Math.min(newPage, totalPages));
-    setPage(adjustedPage);
     onPageChange?.(adjustedPage);
   };
 
