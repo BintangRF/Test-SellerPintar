@@ -5,7 +5,7 @@ import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import Loader from "@/components/Loader";
 import ArticleCard from "@/components/articles/ArticleCard";
-import LayoutWrapper from "@/components/LayoutWrapper";
+import UserLayout from "@/components/UserLayout";
 import parse from "html-react-parser";
 
 type ArticleDetail = {
@@ -44,7 +44,7 @@ export default function ArticleDetail() {
     };
 
     fetchArticle();
-  }, [id]);
+  }, [id, getData]);
 
   if (loading || !article) {
     return (
@@ -55,7 +55,7 @@ export default function ArticleDetail() {
   }
 
   return (
-    <LayoutWrapper>
+    <UserLayout>
       <div className="py-10 px-6 md:px-24 bg-custom-white">
         {/* Article Header */}
         <div className="mb-8 mx-auto text-center">
@@ -81,7 +81,7 @@ export default function ArticleDetail() {
         {/* Article Image */}
         <div className="mb-8">
           <img
-            src={article.imageUrl}
+            src={article.imageUrl || "https://placehold.co/600x400/png"}
             alt={article.title}
             className="w-full h-80 object-cover rounded-xl shadow-md"
           />
@@ -104,6 +104,6 @@ export default function ArticleDetail() {
           </div>
         )}
       </div>
-    </LayoutWrapper>
+    </UserLayout>
   );
 }

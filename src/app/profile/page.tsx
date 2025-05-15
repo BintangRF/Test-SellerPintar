@@ -2,7 +2,7 @@
 "use client";
 
 import AdminLayout from "@/components/AdminLayout";
-import LayoutWrapper from "@/components/LayoutWrapper";
+import UserLayout from "@/components/UserLayout";
 import ProfileCard from "@/components/ProfileCard";
 import { useAuth } from "@/context/AuthContext";
 import { useApi } from "@/hooks/useApi";
@@ -40,9 +40,9 @@ export default function ProfilePage() {
   return (
     <>
       {isUser && user && (
-        <LayoutWrapper>
+        <UserLayout>
           {user && <ProfileCard user={user} onBack={() => BackFunction()} />}
-        </LayoutWrapper>
+        </UserLayout>
       )}
 
       {isAdmin && user && (

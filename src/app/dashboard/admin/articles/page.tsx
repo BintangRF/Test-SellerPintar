@@ -7,6 +7,9 @@ import { Button } from "@/components/ui/button";
 import { useApi } from "@/hooks/useApi";
 import { ColumnDef } from "@tanstack/react-table";
 import { PlusIcon } from "lucide-react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useDialog } from "@/context/DialogContext";
 
 export type Article = {
   id: string;
@@ -21,7 +24,9 @@ export type Article = {
 };
 
 export default function AdminArticles() {
-  const { getData } = useApi();
+  const { getData, pushData } = useApi();
+  const router = useRouter();
+  const { showDialog, closeDialog } = useDialog() || {};
 
   const [articles, setArticles] = useState<Article[]>([]);
   const [globalFilter, setGlobalFilter] = useState("");
@@ -29,27 +34,64 @@ export default function AdminArticles() {
   const [page, setPage] = useState(1);
   const rowLimit = 5;
 
-  useEffect(() => {
-    const fetchData = async () => {
-      const queryParams = new URLSearchParams({
-        page: page.toString(),
-        limit: rowLimit.toString(),
-        search: globalFilter,
-      });
+  const fetchData = async () => {
+    const queryParams = new URLSearchParams({
+      page: page.toString(),
+      limit: rowLimit.toString(),
+      search: globalFilter,
+    });
 
-      const result = await getData(
-        `/articles?${queryParams.toString()}`,
-        undefined,
-        true
-      );
-      setArticles(result?.data || []);
-      setTotal(result?.total || 0);
-    };
+    const result = await getData(
+      `/articles?${queryParams.toString()}`,
+      undefined,
+      true
+    );
+    setArticles(result?.data || []);
+    setTotal(result?.total || 0);
+  };
+
+  useEffect(() => {
     fetchData();
-  }, [page, globalFilter]);
+  }, [page, globalFilter, getData]);
 
   const handlePageChange = (newPage: number) => {
     setPage(newPage);
+  };
+
+  const handleDelete = async (id: string) => {
+    const result = await pushData(
+      `/articles/${id}`,
+      "delete",
+      {},
+      undefined,
+      true
+    );
+    if (result) {
+      closeDialog?.();
+      fetchData();
+    }
+  };
+
+  const DeleteDialog = ({
+    id,
+    onCancel,
+  }: {
+    id: string;
+    onCancel: () => void;
+  }) => {
+    return (
+      <div className="flex flex-col gap-4">
+        <div className="flex justify-end gap-2 mt-4 font-medium">
+          <Button onClick={onCancel}>Cancel</Button>
+          <Button
+            onClick={() => handleDelete(id)}
+            className="bg-red-500 text-custom-white"
+          >
+            Delete
+          </Button>
+        </div>
+      </div>
+    );
   };
 
   const columns: ColumnDef<Article>[] = [
@@ -72,30 +114,42 @@ export default function AdminArticles() {
       header: "Actions",
       cell: ({ row }) => (
         <div className="flex gap-2">
-          <Button size="sm" onClick={() => handleEdit(row.original)}>
+          <Link
+            href={`/articles/${row?.original.id}`}
+            target="_blank"
+            className="text-custom-blue underline"
+          >
+            Preview
+          </Link>
+          <p
+            onClick={() =>
+              router.push(`/dashboard/admin/articles/${row.original.id}`)
+            }
+            className="text-custom-blue underline cursor-pointer"
+          >
             Edit
-          </Button>
-          <Button
-            variant="destructive"
-            size="sm"
-            onClick={() => handleDelete(row.original.id)}
+          </p>
+          <p
+            onClick={() =>
+              showDialog &&
+              showDialog(
+                <DeleteDialog
+                  id={row.original.id}
+                  onCancel={() => closeDialog?.()}
+                />,
+                "Delete Article",
+                "Are you sure want to delete article?"
+              )
+            }
+            className="text-red-500 underline cursor-pointer"
           >
             Delete
-          </Button>
+          </p>
         </div>
       ),
     },
   ];
 
-  const handleEdit = (article: Article) => {
-    console.log("Edit", article);
-    // Show modal or navigate to edit page
-  };
-
-  const handleDelete = (id: string) => {
-    console.log("Delete", id);
-    // Confirm and call API to delete
-  };
   return (
     <AdminLayout>
       <DataTable
@@ -108,7 +162,7 @@ export default function AdminArticles() {
         onPageChange={handlePageChange}
         actions={
           <Button
-            onClick={() => console.log("Add new")}
+            onClick={() => router.push("/dashboard/admin/articles/create")}
             className="bg-custom-blue flex text-custom-white"
           >
             <PlusIcon />

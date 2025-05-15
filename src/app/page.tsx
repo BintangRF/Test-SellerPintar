@@ -17,7 +17,7 @@ export default function Home() {
     } else if (auth.role === "User") {
       router.push("/articles");
     } else if (auth.role === "Admin") {
-      router.push("/dashboard/admin");
+      router.push("/dashboard/admin/articles");
     }
   }, [auth?.isInitialized, auth?.isLoggedIn, auth?.role, router]);
 

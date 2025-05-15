@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect } from "react";
 import clsx from "clsx";
 import { usePathname, useRouter } from "next/navigation";
 import { Book, LogOut, TagIcon } from "lucide-react";
@@ -8,6 +8,7 @@ import { useAuth } from "@/context/AuthContext";
 import { useDialog } from "@/context/DialogContext";
 import { Button } from "./ui/button";
 import Navbar from "./Navbar";
+import Image from "next/image";
 
 interface AdminLayoutProps {
   children: React.ReactNode;
@@ -18,6 +19,18 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   const router = useRouter();
   const { showDialog, closeDialog } = useDialog() || {};
   const auth = useAuth();
+
+  useEffect(() => {
+    if (!auth?.isInitialized) return;
+
+    if (auth.role !== "Admin") {
+      router.push("/articles");
+    }
+  }, [auth?.isInitialized, auth?.role, router]);
+
+  if (!auth?.isInitialized || auth.role !== "Admin") {
+    return null;
+  }
 
   const LogoutDialog = ({ onCancel }: { onCancel: () => void }) => {
     const handleLogout = () => {
@@ -50,14 +63,23 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     <div className="flex min-h-screen">
       {/* Sidebar */}
       <aside className="flex-[0_0_250px] bg-custom-blue border-r border-gray-200 p-4">
-        <div className="text-xl font-semibold mb-6">Admin Panel</div>
+        <div className="text-xl font-semibold mb-6">
+          <Image
+            src="/black-logo.png"
+            alt="icon"
+            width={120}
+            height={120}
+            className="block"
+            priority
+          />
+        </div>
         <nav className="space-y-2">
           {menuItems.map((item) => (
             <button
               key={item.path}
               onClick={() => router.push(item.path)}
               className={clsx(
-                "w-full text-left px-3 py-2 rounded  hover:bg-blue-400 transition flex text-custom-white",
+                "w-full text-left px-3 py-2 rounded hover:bg-blue-400 transition flex text-custom-white cursor-pointer",
                 pathname === item.path ? "bg-blue-400  font-medium" : ""
               )}
             >
@@ -74,7 +96,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                 "Are you sure want to logout?"
               )
             }
-            className="w-full text-left flex px-3 py-2 rounded hover:bg-blue-400 transition text-custom-white"
+            className="w-full text-left flex px-3 py-2 rounded hover:bg-blue-400 transition text-custom-white cursor-pointer"
           >
             <span className="mr-2">
               <LogOut />

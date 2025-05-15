@@ -2,7 +2,7 @@ import React from "react";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
 
-export default function LayoutWrapper({
+export default function UserLayout({
   children,
 }: {
   children: React.ReactNode;

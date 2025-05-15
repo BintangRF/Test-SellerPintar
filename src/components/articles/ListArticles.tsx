@@ -60,7 +60,7 @@ export default function ListArticles() {
     };
 
     fetchArticles();
-  }, [getData, page, title, category]);
+  }, [getData, page, title, category, params, router]);
 
   useEffect(() => {
     // Update URL when `page` changes

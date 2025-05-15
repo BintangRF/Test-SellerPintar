@@ -22,13 +22,7 @@ import {
 } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import {
-  ArrowUpDown,
-  ChevronDown,
-  ChevronUp,
-  ChevronsUpDown,
-  Search,
-} from "lucide-react";
+import { ChevronDown, ChevronUp, ChevronsUpDown, Search } from "lucide-react";
 import { useState } from "react";
 
 type DataTableProps<TData, TValue> = {
