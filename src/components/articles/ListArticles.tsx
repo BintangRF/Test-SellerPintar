@@ -38,12 +38,13 @@ export default function ListArticles() {
   const [page, setPage] = useState(pageParam);
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
-  const [limit, setLimit] = useState(10);
+  let limit = 9;
 
   useEffect(() => {
     const fetchArticles = async () => {
       const queryParams = new URLSearchParams({
         page: page.toString(),
+        limit: limit.toString(),
         title: title || "",
         category: category || "",
       });
@@ -55,26 +56,26 @@ export default function ListArticles() {
       );
       setArticles(result?.data || []);
       setTotal(result?.total || 0);
-      setLimit(result?.limit || 10);
-      setTotalPages(Math.ceil((result?.total || 0) / (result?.limit || 10)));
+      setTotalPages(Math.ceil((result?.total || 0) / limit));
     };
 
     fetchArticles();
-  }, [getData, page, title, category, params, router]);
+  }, [getData, page, limit, title, category, params, router]);
 
   useEffect(() => {
-    // Update URL when `page` changes
+    // Update URL when `page` or `limit` changes
     const newParams = new URLSearchParams(params.toString());
     newParams.set("page", page.toString());
+    newParams.set("limit", limit.toString());
     router.replace(`?${newParams.toString()}`);
-  }, [page]);
+  }, [page, limit]);
 
   const start = (page - 1) * limit + 1;
   const end = Math.min(start + articles.length - 1, total);
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-[25rem] mt-10">
+      <div className="flex items-center justify-center h-[25rem] mt-9">
         <Loader />
       </div>
     );

@@ -94,7 +94,7 @@ export default function ArticleDetail() {
         {relatedArticles.length > 0 && (
           <div className="mt-12">
             <h2 className="text-2xl font-semibold text-custom-black mb-6">
-              Related Articles in "{article.category.name}"
+              Related Articles in {article.category.name}
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {relatedArticles.map((item) => (

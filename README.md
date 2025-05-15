@@ -1,36 +1,129 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+```markdown
+# 📝 Simple Blog Articles with Next.js
 
-## Getting Started
+Proyek ini adalah implementasi sederhana dari aplikasi blog menggunakan **Next.js**, dengan dukungan manajemen artikel, editor teks, dan peran pengguna (**Admin** dan **User**). Aplikasi ini juga terintegrasi dengan API eksternal untuk pengambilan data.
 
-First, run the development server:
+## 🔧 Tech Stack
+
+- **Framework:** [Next.js 15](https://nextjs.org/)
+- **Styling:** Tailwind CSS
+- **Form Management:** `react-hook-form` + `zod`
+- **Editor:** `react-quill-new`
+- **Table Component:** `@tanstack/react-table`
+- **Authentication:** LocalStorage-based `authContext`
+- **Icons:** `lucide-react`
+- **HTTP Client:** `axios`
+- **UI Components:** `@radix-ui` library (dialog, select, popover, dll)
+
+## 🚀 Features
+
+- 🔐 **Authentication & Role-based Access**
+
+  - Pengguna login dan informasi auth disimpan di `localStorage`.
+  - Pemisahan tampilan dan fitur berdasarkan role (Admin vs User).
+
+- 📄 **Blog Article Management**
+
+  - Admin dapat membuat, mengedit, dan menghapus artikel.
+  - User hanya dapat melihat daftar artikel.
+
+- ✍️ **Rich Text Editor**
+
+  - Editor artikel dengan dukungan teks menggunakan `react-quill-new`.
+
+- 📊 **Data Table**
+
+  - Tabel dinamis menggunakan `@tanstack/react-table` dengan fitur sorting, searching, dan pagination.
+
+- 🎨 **UI Components**
+  - Komponen interaktif seperti dialog, popover, dan select menggunakan `@radix-ui`.
+
+## 📁 Project Structure
+```
+
+/components → Reusable components (tables, forms, dialogs, etc.)
+/contexts → AuthContext (penyimpanan role dan user dengan localStorage)
+/hooks → Custom hooks (misalnya, useAuth)
+/pages → Routing halaman (home, login, dashboard, dll.)
+/services → Konfigurasi axios dan fungsi API call
+/utils → Helper functions
+
+````
+
+## 🔐 Role System
+
+- **Admin**
+  - Bisa mengakses dashboard
+  - Bisa membuat, mengedit, dan menghapus artikel
+- **User**
+  - Hanya bisa melihat daftar artikel
+
+> Role dan informasi user disimpan di `localStorage` melalui `AuthContext`.
+
+## 🌐 API
+
+Semua data artikel diambil dari:
+
+📍 [`https://test-fe.mysellerpintar.com/api-docs`](https://test-fe.mysellerpintar.com/api-docs)
+
+Gunakan `axios` untuk melakukan pengambilan dan manipulasi data.
+
+## 🧪 Dependencies
+
+```json
+"dependencies": {
+  "@hookform/resolvers": "^5.0.1",
+  "@radix-ui/react-dialog": "^1.1.13",
+  "@radix-ui/react-label": "^2.1.6",
+  "@radix-ui/react-popover": "^1.1.13",
+  "@radix-ui/react-select": "^2.2.4",
+  "@radix-ui/react-slot": "^1.2.2",
+  "@tanstack/react-table": "^8.21.3",
+  "@tiptap/pm": "^2.12.0",
+  "axios": "^1.9.0",
+  "class-variance-authority": "^0.7.1",
+  "clsx": "^2.1.1",
+  "html-react-parser": "^5.2.5",
+  "lucide-react": "^0.510.0",
+  "next": "15.3.2",
+  "react": "^19.0.0",
+  "react-dom": "^19.0.0",
+  "react-hook-form": "^7.56.3",
+  "react-quill-new": "^3.4.6",
+  "tailwind-merge": "^3.3.0",
+  "zod": "^3.24.4"
+}
+````
+
+## ▶️ Getting Started
+
+### 1. Install dependencies
+
+```bash
+npm install
+# atau
+yarn install
+```
+
+### 2. Jalankan development server
 
 ```bash
 npm run dev
-# or
+# atau
 yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 3. Buka di browser
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```
+http://localhost:3000
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 📌 Catatan Tambahan
 
-## Learn More
+- Pastikan role pengguna disimpan dalam format yang aman (meskipun menggunakan localStorage).
+- Untuk deployment, gunakan platform seperti **Vercel** atau **Netlify**.
 
-To learn more about Next.js, take a look at the following resources:
+## 🧑‍💻 Kontribusi
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Kontribusi sangat diterima! Silakan buat issue atau pull request jika ingin menambahkan fitur baru atau memperbaiki bug.

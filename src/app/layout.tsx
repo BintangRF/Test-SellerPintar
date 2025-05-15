@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { AuthProvider } from "@/context/AuthContext";
 import { DialogProvider } from "@/context/DialogContext";
-import ProtectedRoute from "@/context/ProtectedRoute";
 
 export const metadata: Metadata = {
   title: "Home Test Frontend Web Developer",
