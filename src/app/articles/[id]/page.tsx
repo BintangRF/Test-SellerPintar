@@ -84,7 +84,7 @@ export default function ArticleDetail() {
         <div className="prose max-w-none mb-12">{parse(article.content)}</div>
 
         {/* Related Articles */}
-        {relatedArticles?.data.length! > 0 && (
+        {(relatedArticles?.data ?? []).length > 0 && (
           <div className="mt-12">
             <h2 className="text-2xl font-semibold text-custom-black mb-6">
               Related Articles in {article.category.name}
