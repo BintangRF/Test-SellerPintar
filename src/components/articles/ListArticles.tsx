@@ -38,7 +38,7 @@ export default function ListArticles() {
   const [page, setPage] = useState(pageParam);
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
-  let limit = 9;
+  const limit = 9;
 
   useEffect(() => {
     const fetchArticles = async () => {
